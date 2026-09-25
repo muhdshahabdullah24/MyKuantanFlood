@@ -47,10 +47,12 @@ self.addEventListener("notificationclick", event => {
     event.notification.close();
     event.waitUntil((async () => {
         const targetUrl = resolveNotificationUrl({ data: { url: event.notification.data?.url } });
+        const resolvedTarget = new URL(targetUrl);
         const windowClients = await clients.matchAll({ type: "window", includeUncontrolled: true });
         const existingClient = windowClients.find(client => {
             try {
-                return new URL(client.url).origin === new URL(targetUrl).origin;
+                const clientUrl = new URL(client.url);
+                return clientUrl.origin === resolvedTarget.origin && clientUrl.pathname === resolvedTarget.pathname;
             } catch (error) {
                 return false;
             }
