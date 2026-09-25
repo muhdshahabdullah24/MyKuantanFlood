@@ -975,6 +975,8 @@ function setupTestMode() {
     }
 
     testModePanel.hidden = !TEST_MODE;
+    testModeLauncher?.setAttribute("aria-expanded", "false");
+    testWidgetContent?.setAttribute("aria-hidden", "true");
     if (!TEST_MODE) {
         return;
     }

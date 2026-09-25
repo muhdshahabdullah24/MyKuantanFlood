@@ -1002,8 +1002,8 @@ main {
 
 .development-simulation-launcher {
     position: absolute;
-    right: 15px;
-    bottom: 15px;
+    left: 15px;
+    bottom: 56px;
     z-index: 1500;
     padding: 7px 12px;
     border: 1px solid #b91c1c;
@@ -1018,8 +1018,8 @@ main {
 
 .development-simulation-panel {
     position: absolute;
-    right: 15px;
-    bottom: 56px;
+    left: 15px;
+    bottom: 97px;
     z-index: 1500;
     width: min(300px, calc(100vw - 30px));
     max-height: min(52vh, 460px);
@@ -1163,6 +1163,19 @@ main {
     .test-mode-launcher {
         left: 10px;
         bottom: 10px;
+    }
+
+    .development-simulation-launcher {
+        left: 10px;
+        bottom: 52px;
+    }
+
+    .development-simulation-panel {
+        left: 10px;
+        bottom: 94px;
+        width: calc(50% - 15px);
+        min-width: 170px;
+        max-width: calc(100vw - 20px);
     }
 
     .test-mode-widget {
@@ -1859,4 +1872,3 @@ main {
         align-self: flex-start;
     }
 }
-
