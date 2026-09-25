@@ -114,6 +114,15 @@ async function openNotificationTarget(targetUrl) {
                     });
                     return focusedClient;
                 }
+
+                if ("focus" in existingClient) {
+                    const focusedClient = await existingClient.focus();
+                    existingClient.postMessage?.({
+                        type: "notification-click",
+                        url: resolvedTarget.href
+                    });
+                    return focusedClient;
+                }
             }
         } catch (error) {
         }
