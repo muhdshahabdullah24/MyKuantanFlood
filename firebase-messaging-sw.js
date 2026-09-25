@@ -108,7 +108,7 @@ async function openNotificationTarget(targetUrl) {
                 const navigatedClient = await existingClient.navigate(resolvedTarget.href);
                 if (navigatedClient && "focus" in navigatedClient) {
                     const focusedClient = await navigatedClient.focus();
-                    existingClient.postMessage?.({
+                    navigatedClient.postMessage?.({
                         type: "notification-click",
                         url: resolvedTarget.href
                     });

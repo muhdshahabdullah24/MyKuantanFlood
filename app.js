@@ -145,7 +145,15 @@ function redirectFromNotificationMessage(message) {
             return;
         }
 
-        if (targetUrl.href !== window.location.href) {
+        const currentUrl = new URL(window.location.href);
+        if (targetUrl.pathname === currentUrl.pathname && targetUrl.search === currentUrl.search) {
+            if (targetUrl.hash && targetUrl.hash !== currentUrl.hash) {
+                window.location.hash = targetUrl.hash;
+            }
+            return;
+        }
+
+        if (targetUrl.href !== currentUrl.href) {
             window.location.assign(targetUrl.href);
         }
     } catch (error) {
