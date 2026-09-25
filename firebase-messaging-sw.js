@@ -17,7 +17,8 @@ const APP_SCOPE_URL = new URL(self.registration.scope);
 const APP_SCOPE_PATH_PREFIX = APP_SCOPE_URL.pathname.endsWith("/")
     ? APP_SCOPE_URL.pathname
     : `${APP_SCOPE_URL.pathname}/`;
-const NOTIFICATION_FALLBACK_URL = new URL("index.html", self.registration.scope).href;
+const NOTIFICATION_FALLBACK_URL = APP_SCOPE_URL.href;
+const NOTIFICATION_ICON_URL = new URL("favicon.svg", self.registration.scope).href;
 
 function isAllowedNotificationUrl(url) {
     const normalizedPath = url.pathname.endsWith("/") ? url.pathname : `${url.pathname}/`;
@@ -46,38 +47,52 @@ messaging.onBackgroundMessage(payload => {
 
     self.registration.showNotification(title, {
         body: notification.body || "New flood information is available.",
-        icon: notification.icon || "/favicon.svg",
+        icon: notification.icon || NOTIFICATION_ICON_URL,
         data: {
             url: resolveNotificationUrl(payload)
         }
     });
 });
 
+async function openNotificationTarget(targetUrl) {
+    const resolvedTarget = new URL(targetUrl);
+    const windowClients = await clients.matchAll({ type: "window", includeUncontrolled: true });
+    const existingClient = windowClients.find(client => {
+        try {
+            return isAllowedNotificationUrl(new URL(client.url));
+        } catch (error) {
+            return false;
+        }
+    });
+
+    if (existingClient) {
+        try {
+            if ("navigate" in existingClient && existingClient.url !== resolvedTarget.href) {
+                const navigatedClient = await existingClient.navigate(resolvedTarget.href);
+                if (navigatedClient && "focus" in navigatedClient) {
+                    return navigatedClient.focus();
+                }
+            }
+
+            if ("focus" in existingClient) {
+                return existingClient.focus();
+            }
+        } catch (error) {
+        }
+    }
+
+    try {
+        return await clients.openWindow(resolvedTarget.href);
+    } catch (error) {
+        if (resolvedTarget.href !== NOTIFICATION_FALLBACK_URL) {
+            return clients.openWindow(NOTIFICATION_FALLBACK_URL);
+        }
+        throw error;
+    }
+}
+
 self.addEventListener("notificationclick", event => {
     event.notification.close();
-    event.waitUntil((async () => {
-        const targetUrl = resolveNotificationUrl({ data: { url: event.notification.data?.url } });
-        const resolvedTarget = new URL(targetUrl);
-        const windowClients = await clients.matchAll({ type: "window", includeUncontrolled: true });
-        const existingClient = windowClients.find(client => {
-            try {
-                const clientUrl = new URL(client.url);
-                return clientUrl.origin === resolvedTarget.origin &&
-                    clientUrl.pathname === resolvedTarget.pathname &&
-                    clientUrl.search === resolvedTarget.search &&
-                    clientUrl.hash === resolvedTarget.hash;
-            } catch (error) {
-                return false;
-            }
-        });
-
-        if (existingClient) {
-            if ("navigate" in existingClient) {
-                await existingClient.navigate(targetUrl);
-            }
-            return existingClient.focus();
-        }
-
-        return clients.openWindow(targetUrl);
-    })());
+    const targetUrl = resolveNotificationUrl({ data: { url: event.notification.data?.url } });
+    event.waitUntil(openNotificationTarget(targetUrl));
 });

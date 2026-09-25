@@ -487,7 +487,10 @@ async function showFloodNotification(title, options) {
     }
 
     try {
-        const targetUrl = new URL("index.html", window.location.href).href;
+        const registration = notificationRegistration
+            ? await notificationRegistration
+            : null;
+        const targetUrl = registration?.scope || new URL(".", window.location.href).href;
         const notificationOptions = {
             ...options,
             data: {
@@ -495,9 +498,6 @@ async function showFloodNotification(title, options) {
                 url: options?.data?.url || targetUrl
             }
         };
-        const registration = notificationRegistration
-            ? await notificationRegistration
-            : null;
 
         if (registration) {
             await registration.showNotification(title, notificationOptions);
