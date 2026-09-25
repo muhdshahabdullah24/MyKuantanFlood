@@ -41,6 +41,13 @@ function resolveNotificationUrl(payload = {}) {
     }
 }
 
+function isSameNotificationTarget(clientUrl, targetUrl) {
+    return clientUrl.origin === targetUrl.origin &&
+        clientUrl.pathname === targetUrl.pathname &&
+        clientUrl.search === targetUrl.search &&
+        clientUrl.hash === targetUrl.hash;
+}
+
 messaging.onBackgroundMessage(payload => {
     const notification = payload.notification || {};
     const title = notification.title || "Kuantan Flood Alert";
@@ -57,17 +64,25 @@ messaging.onBackgroundMessage(payload => {
 async function openNotificationTarget(targetUrl) {
     const resolvedTarget = new URL(targetUrl);
     const windowClients = await clients.matchAll({ type: "window", includeUncontrolled: true });
-    const existingClient = windowClients.find(client => {
+    const inScopeClients = windowClients.filter(client => {
         try {
             return isAllowedNotificationUrl(new URL(client.url));
         } catch (error) {
             return false;
         }
     });
+    const existingClient = inScopeClients.find(client => {
+        try {
+            return isSameNotificationTarget(new URL(client.url), resolvedTarget);
+        } catch (error) {
+            return false;
+        }
+    }) || inScopeClients[0];
 
     if (existingClient) {
         try {
-            if ("navigate" in existingClient && existingClient.url !== resolvedTarget.href) {
+            const existingClientUrl = new URL(existingClient.url);
+            if ("navigate" in existingClient && !isSameNotificationTarget(existingClientUrl, resolvedTarget)) {
                 const navigatedClient = await existingClient.navigate(resolvedTarget.href);
                 if (navigatedClient && "focus" in navigatedClient) {
                     return navigatedClient.focus();
