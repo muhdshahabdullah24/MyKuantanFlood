@@ -84,15 +84,15 @@ async function openNotificationTarget(targetUrl) {
     if (existingClient) {
         try {
             const existingClientUrl = new URL(existingClient.url);
-            if ("navigate" in existingClient && !isSameNotificationTarget(existingClientUrl, resolvedTarget)) {
+            if (isSameNotificationTarget(existingClientUrl, resolvedTarget)) {
+                if ("focus" in existingClient) {
+                    return existingClient.focus();
+                }
+            } else if ("navigate" in existingClient) {
                 const navigatedClient = await existingClient.navigate(resolvedTarget.href);
                 if (navigatedClient && "focus" in navigatedClient) {
                     return navigatedClient.focus();
                 }
-            }
-
-            if ("focus" in existingClient) {
-                return existingClient.focus();
             }
         } catch (error) {
         }
