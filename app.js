@@ -487,14 +487,22 @@ async function showFloodNotification(title, options) {
     }
 
     try {
+        const targetUrl = new URL("index.html", window.location.href).href;
+        const notificationOptions = {
+            ...options,
+            data: {
+                ...(options?.data || {}),
+                url: options?.data?.url || targetUrl
+            }
+        };
         const registration = notificationRegistration
             ? await notificationRegistration
             : null;
 
         if (registration) {
-            await registration.showNotification(title, options);
+            await registration.showNotification(title, notificationOptions);
         } else {
-            new Notification(title, options);
+            new Notification(title, notificationOptions);
         }
         return true;
     } catch (error) {
@@ -1814,4 +1822,3 @@ legend.onAdd = function () {
 };
 
 legend.addTo(map);
-

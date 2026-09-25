@@ -13,6 +13,23 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+const NOTIFICATION_FALLBACK_URL = new URL("index.html", self.registration.scope).href;
+
+function resolveNotificationUrl(payload = {}) {
+    const notification = payload.notification || {};
+    const candidateUrl = notification.click_action || payload.fcmOptions?.link || payload.data?.url;
+
+    if (!candidateUrl) {
+        return NOTIFICATION_FALLBACK_URL;
+    }
+
+    try {
+        return new URL(candidateUrl, self.registration.scope).href;
+    } catch (error) {
+        return NOTIFICATION_FALLBACK_URL;
+    }
+}
+
 messaging.onBackgroundMessage(payload => {
     const notification = payload.notification || {};
     const title = notification.title || "Kuantan Flood Alert";
@@ -21,12 +38,31 @@ messaging.onBackgroundMessage(payload => {
         body: notification.body || "New flood information is available.",
         icon: notification.icon || "/favicon.svg",
         data: {
-            url: notification.click_action || "/"
+            url: resolveNotificationUrl(payload)
         }
     });
 });
 
 self.addEventListener("notificationclick", event => {
     event.notification.close();
-    event.waitUntil(clients.openWindow(event.notification.data?.url || "/"));
+    event.waitUntil((async () => {
+        const targetUrl = resolveNotificationUrl({ data: { url: event.notification.data?.url } });
+        const windowClients = await clients.matchAll({ type: "window", includeUncontrolled: true });
+        const existingClient = windowClients.find(client => {
+            try {
+                return new URL(client.url).origin === new URL(targetUrl).origin;
+            } catch (error) {
+                return false;
+            }
+        });
+
+        if (existingClient) {
+            if ("navigate" in existingClient) {
+                await existingClient.navigate(targetUrl);
+            }
+            return existingClient.focus();
+        }
+
+        return clients.openWindow(targetUrl);
+    })());
 });
