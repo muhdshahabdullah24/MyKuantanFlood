@@ -52,7 +52,10 @@ self.addEventListener("notificationclick", event => {
         const existingClient = windowClients.find(client => {
             try {
                 const clientUrl = new URL(client.url);
-                return clientUrl.origin === resolvedTarget.origin && clientUrl.pathname === resolvedTarget.pathname;
+                return clientUrl.origin === resolvedTarget.origin &&
+                    clientUrl.pathname === resolvedTarget.pathname &&
+                    clientUrl.search === resolvedTarget.search &&
+                    clientUrl.hash === resolvedTarget.hash;
             } catch (error) {
                 return false;
             }
