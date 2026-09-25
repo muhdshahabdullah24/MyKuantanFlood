@@ -94,6 +94,27 @@ async function openNotificationTarget(targetUrl) {
 
     if (existingClient) {
         try {
+            const existingClientUrl = new URL(existingClient.url);
+            if (isSameNotificationTarget(existingClientUrl, resolvedTarget) && "focus" in existingClient) {
+                return existingClient.focus();
+            }
+        } catch (error) {
+            console.warn("[FCM] Notification click focus failed:", error);
+        }
+
+        try {
+            const openedClient = await clients.openWindow(resolvedTarget.href);
+            if (openedClient && "focus" in openedClient) {
+                return openedClient.focus();
+            }
+            if (openedClient) {
+                return openedClient;
+            }
+        } catch (error) {
+            console.warn("[FCM] Notification click openWindow fallback failed:", error);
+        }
+
+        try {
             if ("focus" in existingClient) {
                 const focusedClient = await existingClient.focus();
                 existingClient.postMessage?.({
@@ -103,7 +124,7 @@ async function openNotificationTarget(targetUrl) {
                 return focusedClient;
             }
         } catch (error) {
-            console.warn("[FCM] Notification click focus failed:", error);
+            console.warn("[FCM] Notification click message handoff failed:", error);
         }
     }
 
