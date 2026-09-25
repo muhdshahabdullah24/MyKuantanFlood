@@ -13,7 +13,12 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+const APP_SCOPE_URL = new URL(self.registration.scope);
 const NOTIFICATION_FALLBACK_URL = new URL("index.html", self.registration.scope).href;
+
+function isAllowedNotificationUrl(url) {
+    return url.origin === APP_SCOPE_URL.origin && url.pathname.startsWith(APP_SCOPE_URL.pathname);
+}
 
 function resolveNotificationUrl(payload = {}) {
     const notification = payload.notification || {};
@@ -24,7 +29,8 @@ function resolveNotificationUrl(payload = {}) {
     }
 
     try {
-        return new URL(candidateUrl, self.registration.scope).href;
+        const resolvedUrl = new URL(candidateUrl, self.registration.scope);
+        return isAllowedNotificationUrl(resolvedUrl) ? resolvedUrl.href : NOTIFICATION_FALLBACK_URL;
     } catch (error) {
         return NOTIFICATION_FALLBACK_URL;
     }
