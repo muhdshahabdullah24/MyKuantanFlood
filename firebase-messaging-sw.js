@@ -43,6 +43,17 @@ function resolveNotificationUrl(payload = {}) {
     }
 }
 
+function resolveNotificationClickUrl(notificationData = {}) {
+    const fcmMessage = notificationData.FCM_MSG || {};
+    return resolveNotificationUrl({
+        notification: fcmMessage.notification,
+        fcmOptions: fcmMessage.fcmOptions,
+        data: {
+            url: notificationData.url || fcmMessage.data?.url
+        }
+    });
+}
+
 function isSameNotificationTarget(clientUrl, targetUrl) {
     return clientUrl.origin === targetUrl.origin &&
         clientUrl.pathname === targetUrl.pathname &&
@@ -86,19 +97,34 @@ async function openNotificationTarget(targetUrl) {
             const existingClientUrl = new URL(existingClient.url);
             if (isSameNotificationTarget(existingClientUrl, resolvedTarget)) {
                 if ("focus" in existingClient) {
-                    return existingClient.focus();
+                    const focusedClient = await existingClient.focus();
+                    existingClient.postMessage?.({
+                        type: "notification-click",
+                        url: resolvedTarget.href
+                    });
+                    return focusedClient;
                 }
             } else if ("navigate" in existingClient) {
                 const navigatedClient = await existingClient.navigate(resolvedTarget.href);
                 if (navigatedClient && "focus" in navigatedClient) {
-                    return navigatedClient.focus();
+                    const focusedClient = await navigatedClient.focus();
+                    existingClient.postMessage?.({
+                        type: "notification-click",
+                        url: resolvedTarget.href
+                    });
+                    return focusedClient;
                 }
             }
         } catch (error) {
         }
 
         if ("focus" in existingClient) {
-            return existingClient.focus();
+            const focusedClient = await existingClient.focus();
+            existingClient.postMessage?.({
+                type: "notification-click",
+                url: resolvedTarget.href
+            });
+            return focusedClient;
         }
     }
 
@@ -118,6 +144,6 @@ async function openNotificationTarget(targetUrl) {
 
 self.addEventListener("notificationclick", event => {
     event.notification.close();
-    const targetUrl = event.notification.data?.url || NOTIFICATION_FALLBACK_URL;
+    const targetUrl = resolveNotificationClickUrl(event.notification.data);
     event.waitUntil(openNotificationTarget(targetUrl));
 });

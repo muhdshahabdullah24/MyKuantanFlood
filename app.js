@@ -134,6 +134,31 @@ let floodAlertsEnabled = localStorage.getItem(FLOOD_ALERTS_ENABLED_STORAGE_KEY) 
 let notificationRegistration;
 let fcmToken = localStorage.getItem(FCM_TOKEN_STORAGE_KEY) || "";
 
+function redirectFromNotificationMessage(message) {
+    if (!message || message.type !== "notification-click" || !message.url) {
+        return;
+    }
+
+    try {
+        const targetUrl = new URL(message.url, window.location.href);
+        if (targetUrl.origin !== window.location.origin) {
+            return;
+        }
+
+        if (targetUrl.href !== window.location.href) {
+            window.location.assign(targetUrl.href);
+        }
+    } catch (error) {
+        console.warn("[FCM] Invalid notification redirect URL:", error);
+    }
+}
+
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.addEventListener("message", event => {
+        redirectFromNotificationMessage(event.data);
+    });
+}
+
 function getStoredAlertKeys() {
     try {
         const storedKeys = JSON.parse(localStorage.getItem(FLOOD_ALERT_DEDUPE_STORAGE_KEY) || "[]");
