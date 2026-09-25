@@ -114,6 +114,6 @@ async function openNotificationTarget(targetUrl) {
 
 self.addEventListener("notificationclick", event => {
     event.notification.close();
-    const targetUrl = resolveNotificationUrl({ data: { url: event.notification.data?.url } });
+    const targetUrl = event.notification.data?.url || NOTIFICATION_FALLBACK_URL;
     event.waitUntil(openNotificationTarget(targetUrl));
 });
