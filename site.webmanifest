@@ -1,0 +1,17 @@
+{
+  "name": "Kuantan Flood Risk Map",
+  "short_name": "Kuantan Flood",
+  "description": "Flood hazard assessment and weather-based risk map for Kuantan.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b1f3a",
+  "theme_color": "#0b1f3a",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

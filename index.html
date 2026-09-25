@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Kuantan Flood Risk Map shows flood risk zones and live weather conditions for flood hazard assessment in Kuantan, Pahang.">
+    <meta name="theme-color" content="#0b1f3a">
+    <meta name="robots" content="index, follow">
+    <meta property="og:title" content="Kuantan Flood Risk Map">
+    <meta property="og:description"
+        content="Flood hazard assessment system for Kuantan with risk classification and real-time weather alerts.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="/favicon.svg">
+    <meta name="msapplication-TileColor" content="#0b1f3a">
+
+    <title>Kuantan Flood Risk Map</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="manifest" href="/site.webmanifest">
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+
+    <!-- Our CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header class="header">
+        <a class="brand" href="#map" aria-label="Kuantan Flood Risk Map home">
+            <span class="brand-title">Kuantan Flood Risk Map</span>
+            <span class="brand-subtitle">Flood Hazard Assessment System</span>
+        </a>
+        <button id="nav-toggle" class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav"
+            aria-label="Open navigation">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav id="site-nav" class="site-nav" aria-label="Main navigation">
+            <a href="#map"><span aria-hidden="true">⌖</span><span>Map</span></a>
+            <a href="weather.html"><span aria-hidden="true">☼</span><span>Weather</span></a>
+            <a href="saved-locations.html"><span aria-hidden="true">📍</span><span>Saved Location</span></a>
+            <button id="notification-settings-toggle" class="notification-nav-button" type="button" aria-expanded="false"
+                aria-controls="notification-settings">
+                <span aria-hidden="true">🔔</span><span>Alerts</span>
+            </button>
+            <a href="#flood-risk-info-title"><span aria-hidden="true">▤</span><span>Reports</span></a>
+            <a href="#flood-risk-info-title"><span aria-hidden="true">ⓘ</span><span>About</span></a>
+            <section id="notification-settings" class="notification-nav-panel" aria-labelledby="notification-settings-title" hidden>
+                <div class="notification-nav-panel-heading">
+                    <h2 id="notification-settings-title">Flood Alert Notifications</h2>
+                    <span aria-hidden="true">🔔</span>
+                </div>
+                <button id="enable-flood-alerts" type="button">Enable Flood Alerts</button>
+                <button id="send-test-flood-alert" type="button" hidden>Send Test Flood Alert</button>
+                <p id="notification-status" class="permission-status" aria-live="polite">Notifications disabled</p>
+                <p class="alert-trigger-note">Alerts require a saved area overlapping High/Very High Flood Risk and dangerous weather conditions.</p>
+            </section>
+        </nav>
+    </header>
+
+    <!-- Main content -->
+    <main>
+
+        <!-- Map -->
+        <div id="map"></div>
+
+        <!-- ================================
+             PHASE 6 - WEATHER
+             ================================ -->
+        <section id="weather-panel" class="weather-panel" aria-live="polite">
+            <button id="weather-toggle" class="weather-heading" type="button" aria-expanded="false"
+                aria-controls="weather-details-content">
+                <span class="weather-title-wrap">
+                    <span class="weather-location">Kuantan</span>
+                    <span id="weather-summary-temperature" class="weather-summary-temperature">--</span>
+                </span>
+                <span id="weather-icon" class="weather-icon" aria-hidden="true">--</span>
+                <span id="weather-toggle-icon" class="weather-toggle-icon" aria-hidden="true">⌄</span>
+            </button>
+            <div id="weather-loading" class="weather-message">Loading weather data...</div>
+            <div id="weather-details-content" class="weather-details-content" aria-hidden="true">
+                <div id="weather-content">
+                    <p id="weather-condition" class="weather-condition"></p>
+                    <p id="weather-temperature" class="weather-temperature"></p>
+                    <div class="weather-details">
+                        <p><strong>Humidity:</strong> <span id="weather-humidity"></span></p>
+                        <p><strong>Rainfall:</strong> <span id="weather-rainfall"></span></p>
+                        <p><strong>Rain probability:</strong> <span id="weather-rain-probability"></span></p>
+                        <p><strong>Wind:</strong> <span id="weather-wind"></span></p>
+                        <p><strong>High / low:</strong> <span id="weather-high-low"></span></p>
+                    </div>
+                    <p id="weather-updated" class="weather-updated"></p>
+                    <p id="weather-warning" class="weather-warning" hidden></p>
+
+                    <div class="forecast-box">
+                        <h3>Next 3 days</h3>
+                        <div id="weather-forecast" class="weather-forecast" aria-live="polite"></div>
+                    </div>
+                </div>
+            </div>
+            <p id="weather-error" class="weather-error" hidden>Weather data unavailable</p>
+        </section>
+
+        <!-- Location analysis controls -->
+        <section id="location-analysis" class="map-tools" aria-label="Flood risk location analysis">
+            <button id="map-tools-toggle" class="map-tools-toggle" type="button" aria-expanded="false"
+                aria-controls="map-tools-content">
+                <span>Location Analysis</span>
+                <span id="map-tools-toggle-icon" aria-hidden="true">⌄</span>
+            </button>
+
+            <div id="map-tools-content" class="map-tools-content" aria-hidden="true">
+
+                <div class="tool-section">
+                    <span class="tool-section-label">Location method</span>
+                    <div class="location-mode-options" role="radiogroup" aria-label="Location method">
+                        <label><input type="radio" name="location-mode" value="manual" checked> Manual pin + radius</label>
+                        <label><input type="radio" name="location-mode" value="gps"> My GPS location</label>
+                    </div>
+                </div>
+
+                <div id="manual-location-section" class="tool-section">
+                    <label for="radius-select">Analysis radius</label>
+                    <select id="radius-select">
+                        <option value="50">50 m</option>
+                        <option value="100">100 m</option>
+                        <option value="250">250 m</option>
+                        <option value="500" selected>500 m</option>
+                        <option value="1000">1 km</option>
+                        <option value="2000">2 km</option>
+                        <option value="5000">5 km</option>
+                    </select>
+                    <p class="tool-hint">Click the map to choose a point, then save it below.</p>
+                </div>
+
+                <div id="gps-location-section" class="tool-section" hidden>
+                    <label for="gps-radius-select">GPS analysis radius</label>
+                    <select id="gps-radius-select">
+                        <option value="50">50 m</option>
+                        <option value="100">100 m</option>
+                        <option value="250">250 m</option>
+                        <option value="500" selected>500 m</option>
+                        <option value="1000">1 km</option>
+                        <option value="2000">2 km</option>
+                        <option value="5000">5 km</option>
+                    </select>
+                    <button id="gps-toggle" type="button">Use My Location</button>
+                    <p id="gps-status" class="gps-status" aria-live="polite">Location sharing is off.</p>
+                    <dl id="gps-details" class="gps-details" hidden>
+                        <div>
+                            <dt>Latitude</dt>
+                            <dd id="gps-latitude">--</dd>
+                        </div>
+                        <div>
+                            <dt>Longitude</dt>
+                            <dd id="gps-longitude">--</dd>
+                        </div>
+                        <div>
+                            <dt>Accuracy</dt>
+                            <dd id="gps-accuracy">--</dd>
+                        </div>
+                    </dl>
+                </div>
+
+                <label class="toggle-row" for="flood-layer-toggle">
+                    <input id="flood-layer-toggle" type="checkbox" checked>
+                    <span>Show flood risk layer</span>
+                </label>
+
+                <button id="save-location" type="button" disabled>Save This Location</button>
+                <p id="saved-locations-summary" class="saved-locations-summary" aria-live="polite">0 / 5 saved locations · <a href="saved-locations.html">View saved locations</a></p>
+
+                <p id="location-status">Click the map to choose a location.</p>
+                <div id="analysis-result" class="analysis-result" aria-live="polite"></div>
+                <div id="flood-status" class="flood-status" aria-live="polite"></div>
+
+            </div>
+        </section>
+
+        <button id="test-mode-launcher" class="test-mode-launcher" type="button" aria-expanded="false"
+            aria-controls="flood-alert-test-panel" aria-label="Open test mode panel">
+            <span aria-hidden="true">🧪</span> Test Mode
+        </button>
+
+        <aside id="flood-alert-test-panel" class="flood-alert-test-panel test-mode-widget" hidden aria-labelledby="flood-alert-test-title">
+            <div class="test-widget-header">
+                <div>
+                    <p class="test-mode-label">TEST MODE — Notifications generated here are simulated.</p>
+                    <h3 id="flood-alert-test-title">🧪 Flood Alert Test Mode</h3>
+                </div>
+            </div>
+
+            <div id="test-widget-content" class="test-widget-content" aria-hidden="false">
+                <div class="test-control-group">
+                    <label class="test-control-label" for="test-weather-code">Weather condition</label>
+                    <select id="test-weather-code">
+                        <option value="65">65 - Heavy rain</option>
+                        <option value="82">82 - Violent rain showers</option>
+                        <option value="95">95 - Thunderstorm</option>
+                        <option value="96">96 - Thunderstorm with hail</option>
+                        <option value="99">99 - Thunderstorm with heavy hail</option>
+                        <option value="0">0 - Clear sky (no alert)</option>
+                    </select>
+                </div>
+                <div class="test-control-group test-interval-control">
+                    <label class="test-control-label" for="test-interval-seconds">Test interval</label>
+                    <input id="test-interval-seconds" type="number" min="1" max="120" value="10">
+                    <span>seconds</span>
+                </div>
+                <div class="test-actions">
+                    <button id="run-test-alert" type="button">🧪 Test Saved Locations</button>
+                </div>
+
+                <button id="toggle-advanced-tests" class="advanced-test-toggle" type="button" aria-expanded="false" aria-controls="advanced-test-panel">
+                    Advanced test scenarios ▾
+                </button>
+
+                <div id="advanced-test-panel" class="advanced-test-panel" hidden>
+                    <div class="advanced-test-actions">
+                        <button id="run-all-weather-tests" type="button">All Dangerous Weather Codes</button>
+                        <button id="run-duplicate-test" type="button">Duplicate Prevention</button>
+                        <button id="run-risk-escalation-test" type="button">Risk Escalation</button>
+                        <button id="run-weather-escalation-test" type="button">Weather Escalation</button>
+                    </div>
+                </div>
+
+                <p id="test-threshold-status" class="test-threshold-status" aria-live="polite">Choose conditions to test.</p>
+                <ol id="test-log" class="test-log" aria-live="polite"></ol>
+            </div>
+        </aside>
+
+        <aside class="flood-risk-info" aria-labelledby="flood-risk-info-title">
+            <button id="flood-risk-toggle" class="flood-risk-toggle" type="button" aria-expanded="false"
+                aria-controls="flood-risk-content">
+                <span id="flood-risk-info-title">Flood Risk Factors</span>
+                <span id="flood-risk-toggle-icon" aria-hidden="true">⌄</span>
+            </button>
+
+            <div id="flood-risk-content" class="flood-risk-content" aria-hidden="true">
+                <p class="flood-risk-intro">This system uses the saved location, analysis radius, and mapped flood polygons together with live weather conditions.</p>
+
+                <section class="risk-factor">
+                    <h3><span aria-hidden="true">🗺️</span> Flood Risk Classification</h3>
+                    <p>The map uses the existing GeoJSON flood-risk dataset and checks whether the saved point plus the selected radius intersects a mapped area.</p>
+                    <ul class="risk-category-list">
+                        <li><span>Category 1</span><strong>Very Low</strong></li>
+                        <li><span>Category 2</span><strong>Low</strong></li>
+                        <li><span>Category 3</span><strong>Moderate</strong></li>
+                        <li><span>Category 4</span><strong>High</strong></li>
+                        <li><span>Category 5</span><strong>Very High</strong></li>
+                    </ul>
+                    <p class="factor-summary">A warning is only triggered when the selected radius overlaps a Category 4 or Category 5 zone.</p>
+                </section>
+
+                <section class="risk-factor">
+                    <h3><span aria-hidden="true">🌧️</span> Trigger Weather Conditions</h3>
+                    <p>Open-Meteo is checked for the dangerous weather codes used in the alert logic:</p>
+                    <ul class="weather-factor-list">
+                        <li>65 - Heavy rain</li>
+                        <li>82 - Violent rain showers</li>
+                        <li>95 - Thunderstorm</li>
+                        <li>96 - Thunderstorm with hail</li>
+                        <li>99 - Thunderstorm with heavy hail</li>
+                    </ul>
+                </section>
+
+                <section class="warning-logic">
+                    <h3>Current Alert Logic</h3>
+                    <p class="logic-equation">Saved area overlaps Category 4 or 5 <span aria-hidden="true">AND</span> dangerous weather code <span aria-hidden="true">→</span> flood alert</p>
+                    <ul class="warning-examples">
+                        <li><span>Category 4 + heavy rain</span><strong class="high-risk-label">⚠️ High Flood Risk Alert</strong></li>
+                        <li><span>Category 5 + thunderstorm</span><strong class="very-high-risk-label">🚨 Very High Flood Risk Alert</strong></li>
+                        <li><span>Category 1–3</span><strong>Not an automatic push alert</strong></li>
+                    </ul>
+                </section>
+
+                <p class="flood-risk-note">Notifications are deduplicated per saved location, risk category, weather code, and time window so the same alert is not sent repeatedly.</p>
+            </div>
+        </aside>
+
+        <!-- Loading message -->
+        <div id="loading">
+            Loading flood risk map...
+        </div>
+
+    </main>
+
+    <nav class="mobile-nav" aria-label="Mobile navigation">
+        <a href="#map"><span aria-hidden="true">⌖</span><span>Map</span></a>
+        <a href="weather.html"><span aria-hidden="true">☼</span><span>Weather</span></a>
+        <a href="saved-locations.html"><span aria-hidden="true">📍</span><span>Saved</span></a>
+        <button id="mobile-menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+            <span aria-hidden="true">☰</span><span>Menu</span>
+        </button>
+    </nav>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="">
+        </script>
+
+    <script src="fcm-config.js"></script>
+    <!-- Our JavaScript -->
+    <script src="app.js"></script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+        import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-messaging.js";
+
+        const firebaseConfig = window.FIREBASE_CONFIG || {};
+        const vapidKey = window.FIREBASE_VAPID_KEY || "";
+
+        async function retrieveFcmToken() {
+            if (!window.isSecureContext || !("Notification" in window) || Notification.permission !== "granted") {
+                console.info("[FCM] Waiting for notification permission.");
+                return;
+            }
+
+            if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
+                console.warn("[FCM] Firebase configuration is missing.");
+                return;
+            }
+
+            try {
+                const app = initializeApp(firebaseConfig);
+                const messaging = getMessaging(app);
+                const registration = await navigator.serviceWorker.register("firebase-messaging-sw.js");
+                const currentToken = await getToken(messaging, {
+                    vapidKey,
+                    serviceWorkerRegistration: registration
+                });
+
+                if (currentToken) {
+                    console.log("[FCM] FCM token obtained");
+                    localStorage.setItem("kuantan-flood-fcm-token", currentToken);
+                    window.fcmToken = currentToken;
+                } else {
+                    console.warn("[FCM] FCM token unavailable. Check notification permission and Firebase configuration.");
+                }
+            } catch (error) {
+                console.error("[FCM] Unable to retrieve FCM token:", error);
+            }
+        }
+
+        retrieveFcmToken();
+        window.addEventListener("fcm-permission-granted", retrieveFcmToken);
+    </script>
+
+</body>
+
+</html>

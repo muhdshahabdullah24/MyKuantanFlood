@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Saved flood risk locations with live weather and flood status for Kuantan, Pahang.">
+    <meta name="theme-color" content="#0b1f3a">
+    <title>Saved Locations | Kuantan Flood Risk Map</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="weather-page-body">
+    <header class="header">
+        <a class="brand" href="index.html#map" aria-label="Kuantan Flood Risk Map home">
+            <span class="brand-title">Kuantan Flood Risk Map</span>
+            <span class="brand-subtitle">Flood Hazard Assessment System</span>
+        </a>
+        <button id="nav-toggle" class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav"
+            aria-label="Open navigation">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav id="site-nav" class="site-nav" aria-label="Main navigation">
+            <a href="index.html#map"><span aria-hidden="true">⌖</span><span>Map</span></a>
+            <a href="weather.html"><span aria-hidden="true">☼</span><span>Weather</span></a>
+            <a class="active" href="saved-locations.html" aria-current="page"><span aria-hidden="true">📍</span><span>Saved Location</span></a>
+            <a href="index.html#notification-settings"><span aria-hidden="true">🔔</span><span>Alerts</span></a>
+            <a href="index.html#flood-risk-info-title"><span aria-hidden="true">▤</span><span>Reports</span></a>
+            <a href="index.html#flood-risk-info-title"><span aria-hidden="true">ⓘ</span><span>About</span></a>
+        </nav>
+    </header>
+
+    <main class="weather-page saved-locations-page">
+        <section class="weather-page-intro" aria-labelledby="saved-locations-title">
+            <div>
+                <p class="page-kicker">Your locations · Up to 5 saved</p>
+                <h1 id="saved-locations-title">Saved locations</h1>
+                <p>Flood risk status, live weather, and analysis radius for each location you saved from the map.</p>
+            </div>
+            <a class="weather-back-link" href="index.html#map">Back to flood map</a>
+        </section>
+
+        <p id="saved-locations-count" class="saved-locations-count">Loading saved locations...</p>
+
+        <div id="saved-locations-list" class="saved-locations-list" aria-live="polite"></div>
+
+        <p id="saved-locations-empty" class="saved-locations-empty" hidden>
+            No saved locations yet. Go to the flood map, choose a manual point or your GPS location, then click
+            "Save This Location" to add one here.
+        </p>
+    </main>
+
+    <nav class="mobile-nav" aria-label="Mobile navigation">
+        <a href="index.html#map"><span aria-hidden="true">⌖</span><span>Map</span></a>
+        <a href="weather.html"><span aria-hidden="true">☼</span><span>Weather</span></a>
+        <a class="active" href="saved-locations.html" aria-current="page"><span aria-hidden="true">📍</span><span>Saved</span></a>
+        <button id="mobile-menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+            <span aria-hidden="true">☰</span><span>Menu</span>
+        </button>
+    </nav>
+
+    <script src="saved-locations.js"></script>
+</body>
+
+</html>
