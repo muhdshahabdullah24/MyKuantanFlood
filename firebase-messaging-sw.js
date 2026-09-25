@@ -96,6 +96,10 @@ async function openNotificationTarget(targetUrl) {
             }
         } catch (error) {
         }
+
+        if ("focus" in existingClient) {
+            return existingClient.focus();
+        }
     }
 
     try {
