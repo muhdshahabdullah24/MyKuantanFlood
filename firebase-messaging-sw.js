@@ -14,15 +14,17 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 const APP_SCOPE_URL = new URL(self.registration.scope);
-const APP_SCOPE_PATH_PREFIX = APP_SCOPE_URL.pathname.endsWith("/")
-    ? APP_SCOPE_URL.pathname
-    : `${APP_SCOPE_URL.pathname}/`;
+const APP_SCOPE_SEGMENTS = APP_SCOPE_URL.pathname.split("/").filter(Boolean);
 const NOTIFICATION_FALLBACK_URL = APP_SCOPE_URL.href;
 const NOTIFICATION_ICON_URL = new URL("favicon.svg", self.registration.scope).href;
 
 function isAllowedNotificationUrl(url) {
-    const normalizedPath = url.pathname.endsWith("/") ? url.pathname : `${url.pathname}/`;
-    return url.origin === APP_SCOPE_URL.origin && normalizedPath.startsWith(APP_SCOPE_PATH_PREFIX);
+    if (url.origin !== APP_SCOPE_URL.origin) {
+        return false;
+    }
+
+    const candidateSegments = url.pathname.split("/").filter(Boolean);
+    return APP_SCOPE_SEGMENTS.every((segment, index) => candidateSegments[index] === segment);
 }
 
 function resolveNotificationUrl(payload = {}) {
@@ -100,9 +102,13 @@ async function openNotificationTarget(targetUrl) {
         return await clients.openWindow(resolvedTarget.href);
     } catch (error) {
         if (resolvedTarget.href !== NOTIFICATION_FALLBACK_URL) {
-            return clients.openWindow(NOTIFICATION_FALLBACK_URL);
+            try {
+                return await clients.openWindow(NOTIFICATION_FALLBACK_URL);
+            } catch (fallbackError) {
+                return null;
+            }
         }
-        throw error;
+        return null;
     }
 }
 
