@@ -14,10 +14,14 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 const APP_SCOPE_URL = new URL(self.registration.scope);
+const APP_SCOPE_PATH_PREFIX = APP_SCOPE_URL.pathname.endsWith("/")
+    ? APP_SCOPE_URL.pathname
+    : `${APP_SCOPE_URL.pathname}/`;
 const NOTIFICATION_FALLBACK_URL = new URL("index.html", self.registration.scope).href;
 
 function isAllowedNotificationUrl(url) {
-    return url.origin === APP_SCOPE_URL.origin && url.pathname.startsWith(APP_SCOPE_URL.pathname);
+    const normalizedPath = url.pathname.endsWith("/") ? url.pathname : `${url.pathname}/`;
+    return url.origin === APP_SCOPE_URL.origin && normalizedPath.startsWith(APP_SCOPE_PATH_PREFIX);
 }
 
 function resolveNotificationUrl(payload = {}) {
