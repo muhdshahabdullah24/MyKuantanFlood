@@ -94,46 +94,16 @@ async function openNotificationTarget(targetUrl) {
 
     if (existingClient) {
         try {
-            const existingClientUrl = new URL(existingClient.url);
-            if (isSameNotificationTarget(existingClientUrl, resolvedTarget)) {
-                if ("focus" in existingClient) {
-                    const focusedClient = await existingClient.focus();
-                    existingClient.postMessage?.({
-                        type: "notification-click",
-                        url: resolvedTarget.href
-                    });
-                    return focusedClient;
-                }
-            } else if ("navigate" in existingClient) {
-                const navigatedClient = await existingClient.navigate(resolvedTarget.href);
-                if (navigatedClient && "focus" in navigatedClient) {
-                    const focusedClient = await navigatedClient.focus();
-                    navigatedClient.postMessage?.({
-                        type: "notification-click",
-                        url: resolvedTarget.href
-                    });
-                    return focusedClient;
-                }
-
-                if ("focus" in existingClient) {
-                    const focusedClient = await existingClient.focus();
-                    existingClient.postMessage?.({
-                        type: "notification-click",
-                        url: resolvedTarget.href
-                    });
-                    return focusedClient;
-                }
+            if ("focus" in existingClient) {
+                const focusedClient = await existingClient.focus();
+                existingClient.postMessage?.({
+                    type: "notification-click",
+                    url: resolvedTarget.href
+                });
+                return focusedClient;
             }
         } catch (error) {
-        }
-
-        if ("focus" in existingClient) {
-            const focusedClient = await existingClient.focus();
-            existingClient.postMessage?.({
-                type: "notification-click",
-                url: resolvedTarget.href
-            });
-            return focusedClient;
+            console.warn("[FCM] Notification click focus failed:", error);
         }
     }
 
