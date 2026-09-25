@@ -61,6 +61,33 @@ function isSameNotificationTarget(clientUrl, targetUrl) {
         clientUrl.hash === targetUrl.hash;
 }
 
+function sendNotificationClickMessage(client, targetUrl) {
+    return new Promise(resolve => {
+        if (!client?.postMessage) {
+            resolve(false);
+            return;
+        }
+
+        const messageChannel = new MessageChannel();
+        const timeoutId = setTimeout(() => resolve(false), 1500);
+        messageChannel.port1.onmessage = event => {
+            clearTimeout(timeoutId);
+            resolve(event.data?.received === true);
+        };
+
+        try {
+            client.postMessage({
+                type: "notification-click",
+                url: targetUrl
+            }, [messageChannel.port2]);
+        } catch (error) {
+            clearTimeout(timeoutId);
+            console.warn("[FCM] Notification click handoff failed:", error);
+            resolve(false);
+        }
+    });
+}
+
 messaging.onBackgroundMessage(payload => {
     const notification = payload.notification || {};
     const title = notification.title || "Kuantan Flood Alert";
@@ -103,6 +130,18 @@ async function openNotificationTarget(targetUrl) {
         }
 
         try {
+            const focusedClient = "focus" in existingClient
+                ? await existingClient.focus()
+                : existingClient;
+            const handoffSucceeded = await sendNotificationClickMessage(existingClient, resolvedTarget.href);
+            if (handoffSucceeded) {
+                return focusedClient;
+            }
+        } catch (error) {
+            console.warn("[FCM] Notification click message handoff failed:", error);
+        }
+
+        try {
             const openedClient = await clients.openWindow(resolvedTarget.href);
             if (openedClient && "focus" in openedClient) {
                 return openedClient.focus();
@@ -112,19 +151,6 @@ async function openNotificationTarget(targetUrl) {
             }
         } catch (error) {
             console.warn("[FCM] Notification click openWindow fallback failed:", error);
-        }
-
-        try {
-            if ("focus" in existingClient) {
-                const focusedClient = await existingClient.focus();
-                existingClient.postMessage?.({
-                    type: "notification-click",
-                    url: resolvedTarget.href
-                });
-                return focusedClient;
-            }
-        } catch (error) {
-            console.warn("[FCM] Notification click message handoff failed:", error);
         }
     }
 

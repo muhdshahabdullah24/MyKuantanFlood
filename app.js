@@ -134,7 +134,15 @@ let floodAlertsEnabled = localStorage.getItem(FLOOD_ALERTS_ENABLED_STORAGE_KEY) 
 let notificationRegistration;
 let fcmToken = localStorage.getItem(FCM_TOKEN_STORAGE_KEY) || "";
 
-function redirectFromNotificationMessage(message) {
+function acknowledgeNotificationMessage(port) {
+    try {
+        port?.postMessage({ received: true });
+    } catch (error) {
+        console.warn("[FCM] Notification acknowledgement failed:", error);
+    }
+}
+
+function redirectFromNotificationMessage(message, port) {
     if (!message || message.type !== "notification-click" || !message.url) {
         return;
     }
@@ -144,6 +152,8 @@ function redirectFromNotificationMessage(message) {
         if (targetUrl.origin !== window.location.origin) {
             return;
         }
+
+        acknowledgeNotificationMessage(port);
 
         const currentUrl = new URL(window.location.href);
         if (targetUrl.pathname === currentUrl.pathname && targetUrl.search === currentUrl.search) {
@@ -163,7 +173,7 @@ function redirectFromNotificationMessage(message) {
 
 if ("serviceWorker" in navigator) {
     navigator.serviceWorker.addEventListener("message", event => {
-        redirectFromNotificationMessage(event.data);
+        redirectFromNotificationMessage(event.data, event.ports?.[0]);
     });
 }
 
