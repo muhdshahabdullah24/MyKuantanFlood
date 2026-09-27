@@ -16,12 +16,13 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage(payload => {
     const notification = payload.notification || {};
     const title = notification.title || "Kuantan Flood Alert";
+    const destination = /\btest\b|🧪/i.test(title) ? "index.html" : "saved-locations.html";
 
     self.registration.showNotification(title, {
         body: notification.body || "New flood information is available.",
         icon: notification.icon || "/favicon.svg",
         data: {
-            url: notification.click_action || "/"
+            url: new URL(destination, self.registration.scope).href
         }
     });
 });
