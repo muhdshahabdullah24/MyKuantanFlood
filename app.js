@@ -1386,7 +1386,7 @@ function checkAndSendFloodAlert(weatherData = latestWeatherData) {
             showFloodNotification(title, {
                 body,
                 tag: `kuantan-flood-risk-${evaluation.category}-${evaluation.code}-${location.id}`,
-                data: { url: new URL("saved-locations.html", window.location.href).href }
+                data: { url: new URL(`index.html?location=${encodeURIComponent(location.id)}#map`, window.location.href).href }
             });
         }
     });
