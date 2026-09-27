@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Current weather and seven-day forecast for Kuantan, Pahang.">
+    <meta name="theme-color" content="#0b1f3a">
+    <title>Weather | Kuantan Flood Risk Map</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="weather-page-body">
+    <header class="header">
+        <a class="brand" href="index.html#map" aria-label="MyKuantanFlood home">
+            <span class="brand-title">MyKuantanFlood</span>
+            <span class="brand-subtitle">Flood Hazard Assessment System</span>
+        </a>
+        <button id="nav-toggle" class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav"
+            aria-label="Open navigation">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav id="site-nav" class="site-nav" aria-label="Main navigation">
+            <a href="index.html#map"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></svg><span>Map</span></a>
+            <a class="active" href="weather.html" aria-current="page"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 16.2a4.3 4.3 0 0 0-3.8-4.27A5.5 5.5 0 0 0 5.5 13H5a3.5 3.5 0 0 0 0 7h11a4 4 0 0 0 4-3.8Z"/><path d="M8 3v2M3.8 5.8l1.4 1.4M2 11h2"/></svg><span>Weather</span></a>
+            <a href="saved-locations.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-6-3.5-6 3.5z"/></svg><span>Saved Location</span></a>
+            <a href="index.html#notification-settings"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span>Alerts</span></a>
+            <a href="index.html#flood-risk-info-title"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 12h7M9 16h7"/></svg><span>Reports</span></a>
+            <a href="index.html#flood-risk-info-title"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg><span>About</span></a>
+        </nav>
+    </header>
+
+    <main class="weather-page">
+        <section class="weather-page-intro" aria-labelledby="weather-page-title">
+            <div>
+                <p class="page-kicker">Live conditions · Open-Meteo</p>
+                <h1 id="weather-page-title">Kuantan weather</h1>
+                <p>Current conditions, rainfall outlook, and the next seven days at a glance.</p>
+            </div>
+            <a class="weather-back-link" href="index.html#map">Back to flood map</a>
+        </section>
+
+        <section class="today-weather-card" aria-labelledby="today-weather-title">
+            <div class="today-weather-main">
+                <p class="page-kicker">Today</p>
+                <h2 id="today-weather-title">Loading weather...</h2>
+                <p id="weather-page-updated" class="weather-page-muted">Fetching the latest conditions</p>
+            </div>
+            <div class="today-weather-temperature">
+                <span id="weather-page-icon" aria-hidden="true">--</span>
+                <strong id="weather-page-temperature">--°C</strong>
+            </div>
+            <dl class="today-weather-stats">
+                <div><dt>Feels like</dt><dd id="weather-page-feels-like">--</dd></div>
+                <div><dt>Humidity</dt><dd id="weather-page-humidity">--</dd></div>
+                <div><dt>Rain now</dt><dd id="weather-page-rainfall">--</dd></div>
+                <div><dt>Rain chance</dt><dd id="weather-page-rain-chance">--</dd></div>
+                <div><dt>Wind</dt><dd id="weather-page-wind">--</dd></div>
+                <div><dt>Today high / low</dt><dd id="weather-page-high-low">--</dd></div>
+            </dl>
+        </section>
+
+        <p id="weather-page-error" class="weather-page-error" role="alert" hidden>
+            Weather data is unavailable right now. Please try again later.
+        </p>
+
+        <section class="forecast-section" aria-labelledby="forecast-title">
+            <div class="section-heading-row">
+                <div>
+                    <p class="page-kicker">Outlook</p>
+                    <h2 id="forecast-title">Next 7 days</h2>
+                </div>
+                <p class="weather-page-muted">Forecast conditions from Open-Meteo</p>
+            </div>
+            <div id="seven-day-forecast" class="seven-day-forecast" aria-live="polite">
+                <p class="weather-page-muted">Loading seven-day forecast...</p>
+            </div>
+        </section>
+
+        <section class="weather-notes" aria-labelledby="weather-notes-title">
+            <div>
+                <p class="page-kicker">Useful context</p>
+                <h2 id="weather-notes-title">Weather and flood-risk alerts</h2>
+            </div>
+            <p>Weather conditions are one factor in the flood-risk system. Automatic alerts require both a saved area overlapping Category 4 or Category 5 flood-risk polygons and a dangerous weather code.</p>
+            <ul>
+                <li>Weather updates every five minutes while flood alerts are enabled.</li>
+                <li>Dangerous codes include heavy rain, violent rain showers, and thunderstorms.</li>
+                <li>Forecast information does not predict that a flood will occur.</li>
+            </ul>
+        </section>
+    </main>
+
+    <nav class="mobile-nav" aria-label="Mobile navigation">
+        <a href="index.html#map"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></svg><span>Map</span></a>
+        <a class="active" href="weather.html" aria-current="page"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 16.2a4.3 4.3 0 0 0-3.8-4.27A5.5 5.5 0 0 0 5.5 13H5a3.5 3.5 0 0 0 0 7h11a4 4 0 0 0 4-3.8Z"/><path d="M8 3v2M3.8 5.8l1.4 1.4M2 11h2"/></svg><span>Weather</span></a>
+        <a href="saved-locations.html"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h12v17l-6-3.5-6 3.5z"/></svg><span>Saved</span></a>
+        <button id="mobile-menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>Menu</span>
+        </button>
+    </nav>
+
+    <script src="weather-page.js"></script>
+</body>
+
+</html>
