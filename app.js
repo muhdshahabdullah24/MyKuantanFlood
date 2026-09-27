@@ -508,7 +508,10 @@ async function showFloodNotification(title, options) {
         if (registration) {
             await registration.showNotification(title, options);
         } else {
-            new Notification(title, options);
+            const notification = new Notification(title, options);
+            if (options.data?.url) {
+                notification.onclick = () => window.location.assign(options.data.url);
+            }
         }
         return true;
     } catch (error) {
