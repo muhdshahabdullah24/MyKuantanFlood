@@ -488,7 +488,8 @@ if (sendTestFloodAlertButton) {
 
         await showFloodNotification("⚠️ Test Flood Alert", {
             body: "This is a test notification to confirm Firebase and browser notifications are working.",
-            tag: "kuantan-flood-test-alert"
+            tag: "kuantan-flood-test-alert",
+            data: { url: new URL("index.html", window.location.href).href }
         });
         notificationStatus.textContent = "Test alert sent";
     });
@@ -507,7 +508,10 @@ async function showFloodNotification(title, options) {
         if (registration) {
             await registration.showNotification(title, options);
         } else {
-            new Notification(title, options);
+            const notification = new Notification(title, options);
+            if (options.data?.url) {
+                notification.onclick = () => window.location.assign(options.data.url);
+            }
         }
         return true;
     } catch (error) {
@@ -1072,7 +1076,8 @@ async function runTestScenario(scenario, label = "Test alert") {
     console.log("[FCM] Sending test notification:", title);
     const notificationSent = await showFloodNotification(title, {
         body,
-        tag: `kuantan-flood-test-${evaluation.category}-${evaluation.code}`
+        tag: `kuantan-flood-test-${evaluation.category}-${evaluation.code}`,
+        data: { url: new URL("index.html", window.location.href).href }
     });
 
     if (!notificationSent) {
@@ -1380,7 +1385,8 @@ function checkAndSendFloodAlert(weatherData = latestWeatherData) {
         if (floodAlertsEnabled && "Notification" in window && Notification.permission === "granted") {
             showFloodNotification(title, {
                 body,
-                tag: `kuantan-flood-risk-${evaluation.category}-${evaluation.code}-${location.id}`
+                tag: `kuantan-flood-risk-${evaluation.category}-${evaluation.code}-${location.id}`,
+                data: { url: new URL("saved-locations.html", window.location.href).href }
             });
         }
     });
@@ -2164,4 +2170,3 @@ legend.onAdd = function () {
 };
 
 legend.addTo(map);
-
